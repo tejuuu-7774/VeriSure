@@ -391,14 +391,15 @@ export default function CandidateDetailsPage() {
                       verifyingAction !==
                       null
                     }
-                    className="btn-secondary h-11 px-4 disabled:opacity-60"
+                    className="btn-secondary h-11 px-5 text-sm font-medium gap-2 whitespace-nowrap disabled:opacity-60"
                   >
-                    <ShieldCheck className="h-4 w-4" />
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
                     {verifyingAction ===
                     "AADHAAR"
                       ? "Checking..."
                       : "Verify Aadhaar"}
                   </button>
+
                   <button
                     onClick={() =>
                       verify("PAN")
@@ -407,13 +408,14 @@ export default function CandidateDetailsPage() {
                       verifyingAction !==
                       null
                     }
-                    className="btn-secondary h-11 px-4 disabled:opacity-60"
+                    className="btn-secondary h-11 px-5 text-sm font-medium gap-2 whitespace-nowrap disabled:opacity-60"
                   >
-                    <ShieldCheck className="h-4 w-4" />
+                    <ShieldCheck className="h-4 w-4 shrink-0" />
                     {verifyingAction === "PAN"
                       ? "Checking..."
                       : "Verify PAN"}
                   </button>
+
                   <button
                     onClick={() =>
                       verify("FULL")
@@ -422,9 +424,9 @@ export default function CandidateDetailsPage() {
                       verifyingAction !==
                       null
                     }
-                    className="btn-primary h-11 px-4 disabled:opacity-60"
+                    className="btn-primary h-11 px-5 text-sm font-medium gap-2 whitespace-nowrap disabled:opacity-60"
                   >
-                    <RefreshCw className="h-4 w-4" />
+                    <RefreshCw className="h-4 w-4 shrink-0" />
                     {verifyingAction === "FULL"
                       ? "Running..."
                       : "Full Verification"}
