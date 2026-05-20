@@ -30,6 +30,8 @@ import { getErrorMessage } from "@/lib/errors";
 import {
   downloadReportPDF,
   getCandidate,
+  startAadhaarVerification,
+  startPanVerification,
   startVerification,
 } from "@/services/candidate.service";
 import type { Candidate } from "@/types";
@@ -47,8 +49,12 @@ export default function CandidateDetailsPage() {
   const [loading, setLoading] =
     useState(true);
 
-  const [verifying, setVerifying] =
-    useState(false);
+  const [
+    verifyingAction,
+    setVerifyingAction,
+  ] = useState<
+    "AADHAAR" | "PAN" | "FULL" | null
+  >(null);
 
   const loadCandidate =
     useCallback(async () => {
@@ -74,16 +80,25 @@ export default function CandidateDetailsPage() {
     loadCandidate();
   }, [loadCandidate]);
 
-  async function verify() {
-    setVerifying(true);
+  async function verify(
+    type: "AADHAAR" | "PAN" | "FULL"
+  ) {
+    setVerifyingAction(type);
 
     try {
-      await startVerification(
-        params.id
-      );
+      const response =
+        type === "AADHAAR"
+          ? await startAadhaarVerification(
+              params.id
+            )
+          : type === "PAN"
+          ? await startPanVerification(
+              params.id
+            )
+          : await startVerification(params.id);
 
       toast.success(
-        "Verification completed"
+        `${response.message}. Overall status: ${response.data.overallStatus}`
       );
 
       await loadCandidate();
@@ -95,7 +110,7 @@ export default function CandidateDetailsPage() {
         )
       );
     } finally {
-      setVerifying(false);
+      setVerifyingAction(null);
     }
   }
 
@@ -235,17 +250,20 @@ export default function CandidateDetailsPage() {
                 </button>
 
                 <button
-                  onClick={verify}
+                  onClick={() =>
+                    verify("FULL")
+                  }
                   disabled={
-                    verifying
+                    verifyingAction !==
+                    null
                   }
                   className="btn-primary h-11 px-4 disabled:opacity-60"
                 >
                   <RefreshCw className="h-4 w-4" />
 
-                  {verifying
+                  {verifyingAction === "FULL"
                     ? "Verifying..."
-                    : "Start Verification"}
+                    : "Full Verification"}
                 </button>
               </div>
             </div>
@@ -354,6 +372,64 @@ export default function CandidateDetailsPage() {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              <div className="card p-5">
+                <h2 className="text-base font-semibold text-slate-950">
+                  Run individual checks
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">
+                  Use these controls to test the separate
+                  backend verification endpoints.
+                </p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <button
+                    onClick={() =>
+                      verify("AADHAAR")
+                    }
+                    disabled={
+                      verifyingAction !==
+                      null
+                    }
+                    className="btn-secondary h-11 px-4 disabled:opacity-60"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {verifyingAction ===
+                    "AADHAAR"
+                      ? "Checking..."
+                      : "Verify Aadhaar"}
+                  </button>
+                  <button
+                    onClick={() =>
+                      verify("PAN")
+                    }
+                    disabled={
+                      verifyingAction !==
+                      null
+                    }
+                    className="btn-secondary h-11 px-4 disabled:opacity-60"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    {verifyingAction === "PAN"
+                      ? "Checking..."
+                      : "Verify PAN"}
+                  </button>
+                  <button
+                    onClick={() =>
+                      verify("FULL")
+                    }
+                    disabled={
+                      verifyingAction !==
+                      null
+                    }
+                    className="btn-primary h-11 px-4 disabled:opacity-60"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    {verifyingAction === "FULL"
+                      ? "Running..."
+                      : "Full Verification"}
+                  </button>
+                </div>
               </div>
 
               {/* TIMELINE */}

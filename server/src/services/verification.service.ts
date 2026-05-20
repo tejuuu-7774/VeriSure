@@ -1,11 +1,75 @@
+import {
+  VerificationStatus,
+  VerificationType,
+} from "@prisma/client";
 import prisma from "../config/prisma";
+
+type AadhaarVerificationResponse = {
+  status: "VERIFIED" | "FAILED";
+  nameMatch: boolean;
+  dobMatch: boolean;
+  message: string;
+};
+
+type PanVerificationResponse = {
+  status: "VERIFIED" | "FAILED";
+  panStatus: "active" | "inactive";
+  message: string;
+};
+
+const logOwnershipDebug = (
+  candidateId: string,
+  userId: string,
+  candidate: { createdById: string } | null
+) => {
+  console.log("candidateId:", candidateId);
+  console.log("userId from token:", userId);
+  console.log("candidate from DB:", candidate);
+  console.log(
+    "candidate.createdById:",
+    candidate?.createdById
+  );
+  console.log(
+    "ownership match:",
+    candidate?.createdById === userId
+  );
+};
+
+const getOwnedCandidate = async (
+  candidateId: string,
+  userId: string
+) => {
+  const candidate =
+    await prisma.candidate.findUnique({
+      where: {
+        id: candidateId,
+      },
+    });
+
+  logOwnershipDebug(
+    candidateId,
+    userId,
+    candidate
+  );
+
+  if (!candidate) {
+    throw new Error("Candidate not found");
+  }
+
+  if (candidate.createdById !== userId) {
+    throw new Error(
+      "Candidate belongs to another user"
+    );
+  }
+
+  return candidate;
+};
 
 const verifyAadhaar = async (
   aadhaarNumber: string
-) => {
-  // simulate external API delay
+): Promise<AadhaarVerificationResponse> => {
   await new Promise((resolve) =>
-    setTimeout(resolve, 1000)
+    setTimeout(resolve, 500)
   );
 
   const isValid =
@@ -13,8 +77,8 @@ const verifyAadhaar = async (
 
   return {
     status: isValid
-      ? "verified"
-      : "failed",
+      ? "VERIFIED"
+      : "FAILED",
     nameMatch: isValid,
     dobMatch: isValid,
     message: isValid
@@ -25,10 +89,9 @@ const verifyAadhaar = async (
 
 const verifyPAN = async (
   panNumber: string
-) => {
-  // simulate external API delay
+): Promise<PanVerificationResponse> => {
   await new Promise((resolve) =>
-    setTimeout(resolve, 1000)
+    setTimeout(resolve, 500)
   );
 
   const isValid =
@@ -38,74 +101,147 @@ const verifyPAN = async (
 
   return {
     status: isValid
-      ? "verified"
-      : "failed",
-    panStatus: isValid
-      ? "active"
-      : "inactive",
+      ? "VERIFIED"
+      : "FAILED",
+    panStatus: isValid ? "active" : "inactive",
     message: isValid
       ? "PAN verified successfully"
       : "Invalid PAN number",
   };
 };
 
-export const startVerification =
+const upsertVerificationLog = async ({
+  candidateId,
+  verificationType,
+  requestPayload,
+  responsePayload,
+  verificationStatus,
+}: {
+  candidateId: string;
+  verificationType: VerificationType;
+  requestPayload: Record<string, string>;
+  responsePayload:
+    | AadhaarVerificationResponse
+    | PanVerificationResponse;
+  verificationStatus: VerificationStatus;
+}) => {
+  const existingLog =
+    await prisma.verificationLog.findFirst({
+      where: {
+        candidateId,
+        verificationType,
+      },
+    });
+
+  if (existingLog) {
+    return prisma.verificationLog.update({
+      where: {
+        id: existingLog.id,
+      },
+      data: {
+        requestPayload,
+        responsePayload,
+        verificationStatus,
+        verifiedAt: new Date(),
+      },
+    });
+  }
+
+  return prisma.verificationLog.create({
+    data: {
+      candidateId,
+      verificationType,
+      requestPayload,
+      responsePayload,
+      verificationStatus,
+    },
+  });
+};
+
+const recalculateOverallStatus = async (
+  candidateId: string
+) => {
+  const logs =
+    await prisma.verificationLog.findMany({
+      where: {
+        candidateId,
+      },
+    });
+
+  const aadhaarLog = logs.find(
+    (log) =>
+      log.verificationType ===
+      "AADHAAR"
+  );
+  const panLog = logs.find(
+    (log) =>
+      log.verificationType ===
+      "PAN"
+  );
+
+  let overallStatus: VerificationStatus =
+    "PENDING";
+
+  if (aadhaarLog && panLog) {
+    const aadhaarVerified =
+      aadhaarLog.verificationStatus ===
+      "VERIFIED";
+    const panVerified =
+      panLog.verificationStatus ===
+      "VERIFIED";
+
+    if (aadhaarVerified && panVerified) {
+      overallStatus =
+        "VERIFIED";
+    } else if (
+      !aadhaarVerified &&
+      !panVerified
+    ) {
+      overallStatus =
+        "FAILED";
+    } else {
+      overallStatus =
+        "PARTIAL";
+    }
+  } else if (aadhaarLog || panLog) {
+    const onlyLog = aadhaarLog || panLog;
+    overallStatus =
+      onlyLog?.verificationStatus ===
+      "VERIFIED"
+        ? "PARTIAL"
+        : "FAILED";
+  }
+
+  await prisma.candidate.update({
+    where: {
+      id: candidateId,
+    },
+    data: {
+      verificationStatus: overallStatus,
+    },
+  });
+
+  return overallStatus;
+};
+
+export const startAadhaarVerification =
   async (
     candidateId: string,
     userId: string
   ) => {
-    // check candidate ownership
     const candidate =
-      await prisma.candidate.findFirst({
-        where: {
-          id: candidateId,
-          createdById: userId,
-        },
-      });
-
-    if (!candidate) {
-      throw new Error(
-        "Candidate not found"
+      await getOwnedCandidate(
+        candidateId,
+        userId
       );
-    }
 
-    // verify aadhaar
-    const aadhaarResult =
+    const aadhaarVerification =
       await verifyAadhaar(
         candidate.aadhaarNumber
       );
 
-    // verify pan
-    const panResult =
-      await verifyPAN(
-        candidate.panNumber
-      );
-
-    // determine final status
-    let overallStatus:
-      | "VERIFIED"
-      | "FAILED"
-      | "PARTIAL" = "FAILED";
-
-    if (
-      aadhaarResult.status ===
-        "verified" &&
-      panResult.status ===
-        "verified"
-    ) {
-      overallStatus = "VERIFIED";
-    } else if (
-      aadhaarResult.status ===
-        "verified" ||
-      panResult.status ===
-        "verified"
-    ) {
-      overallStatus = "PARTIAL";
-    }
-
-    // save aadhaar log
-    await prisma.verificationLog.create({
-      data: {
+    const log =
+      await upsertVerificationLog({
         candidateId,
         verificationType:
           "AADHAAR",
@@ -114,45 +250,132 @@ export const startVerification =
             candidate.aadhaarNumber,
         },
         responsePayload:
-          aadhaarResult,
+          aadhaarVerification,
         verificationStatus:
-          overallStatus,
-      },
-    });
+          aadhaarVerification.status,
+      });
 
-    // save pan log
-    await prisma.verificationLog.create({
-      data: {
-        candidateId,
-        verificationType: "PAN",
-        requestPayload: {
-          panNumber:
-            candidate.panNumber,
-        },
-        responsePayload:
-          panResult,
-        verificationStatus:
-          overallStatus,
-      },
-    });
-
-    // update candidate status
-    await prisma.candidate.update({
-      where: {
-        id: candidateId,
-      },
-      data: {
-        verificationStatus:
-          overallStatus,
-      },
-    });
+    const overallStatus =
+      await recalculateOverallStatus(
+        candidateId
+      );
 
     return {
       candidateId,
-      aadhaarVerification:
-        aadhaarResult,
-      panVerification:
-        panResult,
+      verificationType:
+        "AADHAAR",
+      aadhaarVerification,
+      log,
+      overallStatus,
+      verifiedAt: log.verifiedAt,
+    };
+  };
+
+export const startPanVerification =
+  async (
+    candidateId: string,
+    userId: string
+  ) => {
+    const candidate =
+      await getOwnedCandidate(
+        candidateId,
+        userId
+      );
+
+    const panVerification =
+      await verifyPAN(candidate.panNumber);
+
+    const log =
+      await upsertVerificationLog({
+        candidateId,
+        verificationType:
+          "PAN",
+        requestPayload: {
+          panNumber: candidate.panNumber,
+        },
+        responsePayload:
+          panVerification,
+        verificationStatus:
+          panVerification.status,
+      });
+
+    const overallStatus =
+      await recalculateOverallStatus(
+        candidateId
+      );
+
+    return {
+      candidateId,
+      verificationType: "PAN",
+      panVerification,
+      log,
+      overallStatus,
+      verifiedAt: log.verifiedAt,
+    };
+  };
+
+export const startVerification =
+  async (
+    candidateId: string,
+    userId: string
+  ) => {
+    const candidate =
+      await getOwnedCandidate(
+        candidateId,
+        userId
+      );
+
+    const [
+      aadhaarVerification,
+      panVerification,
+    ] = await Promise.all([
+      verifyAadhaar(candidate.aadhaarNumber),
+      verifyPAN(candidate.panNumber),
+    ]);
+
+    const [aadhaarLog, panLog] =
+      await Promise.all([
+        upsertVerificationLog({
+          candidateId,
+          verificationType:
+            "AADHAAR",
+          requestPayload: {
+            aadhaarNumber:
+              candidate.aadhaarNumber,
+          },
+          responsePayload:
+            aadhaarVerification,
+          verificationStatus:
+            aadhaarVerification.status,
+        }),
+        upsertVerificationLog({
+          candidateId,
+          verificationType:
+            "PAN",
+          requestPayload: {
+            panNumber:
+              candidate.panNumber,
+          },
+          responsePayload:
+            panVerification,
+          verificationStatus:
+            panVerification.status,
+        }),
+      ]);
+
+    const overallStatus =
+      await recalculateOverallStatus(
+        candidateId
+      );
+
+    return {
+      candidateId,
+      aadhaarVerification,
+      panVerification,
+      logs: {
+        aadhaar: aadhaarLog,
+        pan: panLog,
+      },
       overallStatus,
       verifiedAt: new Date(),
     };

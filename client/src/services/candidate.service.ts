@@ -4,7 +4,27 @@ import type {
   CandidateInput,
   DashboardStats,
   Report,
+  VerificationLog,
+  VerificationStatus,
 } from "@/types";
+
+type VerificationApiResponse = {
+  success: boolean;
+  message: string;
+  data: {
+    candidateId: string;
+    verificationType?: "AADHAAR" | "PAN";
+    aadhaarVerification?: Record<string, unknown>;
+    panVerification?: Record<string, unknown>;
+    log?: VerificationLog;
+    logs?: {
+      aadhaar: VerificationLog;
+      pan: VerificationLog;
+    };
+    overallStatus: VerificationStatus;
+    verifiedAt: string;
+  };
+};
 
 export async function getDashboardStats() {
   const response = await api.get<{
@@ -62,10 +82,28 @@ export async function deleteCandidate(id: string) {
 }
 
 export async function startVerification(id: string) {
-  const response = await api.post<{
-    success: boolean;
-    message: string;
-  }>(`/verifications/${id}/start`);
+  const response =
+    await api.post<VerificationApiResponse>(
+      `/verifications/${id}/start`
+    );
+  return response.data;
+}
+
+export async function startAadhaarVerification(
+  id: string
+) {
+  const response =
+    await api.post<VerificationApiResponse>(
+      `/verifications/${id}/aadhaar`
+    );
+  return response.data;
+}
+
+export async function startPanVerification(id: string) {
+  const response =
+    await api.post<VerificationApiResponse>(
+      `/verifications/${id}/pan`
+    );
   return response.data;
 }
 
