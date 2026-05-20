@@ -3,6 +3,8 @@ import {
   createCandidateHandler,
   getCandidatesHandler,
   getCandidateByIdHandler,
+  updateCandidateHandler,
+  deleteCandidateHandler,
 } from "../controllers/candidate.controller";
 import { authenticateUser } from "../middleware/auth.middleware";
 
@@ -24,6 +26,18 @@ router.get(
   "/:id",
   authenticateUser,
   getCandidateByIdHandler
+);
+
+router.put(
+  "/:id",
+  authenticateUser,
+  updateCandidateHandler
+);
+
+router.delete(
+  "/:id",
+  authenticateUser,
+  deleteCandidateHandler
 );
 
 export default router;

@@ -11,6 +11,16 @@ type CreateCandidateInput = {
   createdById: string;
 };
 
+type UpdateCandidateInput = {
+  fullName?: string;
+  email?: string;
+  phone?: string;
+  aadhaarNumber?: string;
+  panNumber?: string;
+  dob?: string;
+  address?: string;
+};
+
 export const createCandidate = async ({
   fullName,
   email,
@@ -40,20 +50,16 @@ export const createCandidate = async ({
 export const getCandidates = async (
   userId: string
 ) => {
-  const candidates =
-    await prisma.candidate.findMany({
-      where: {
-        createdById: userId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-  return candidates;
+  return prisma.candidate.findMany({
+    where: {
+      createdById: userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 };
 
-// To access one particular ID of the candidate this is used
 export const getCandidateById = async (
   candidateId: string,
   userId: string
@@ -71,4 +77,59 @@ export const getCandidateById = async (
   }
 
   return candidate;
+};
+
+export const updateCandidate = async (
+  candidateId: string,
+  userId: string,
+  data: UpdateCandidateInput
+) => {
+  const existingCandidate =
+    await prisma.candidate.findFirst({
+      where: {
+        id: candidateId,
+        createdById: userId,
+      },
+    });
+
+  if (!existingCandidate) {
+    throw new Error("Candidate not found");
+  }
+
+  return prisma.candidate.update({
+    where: {
+      id: candidateId,
+    },
+    data: {
+      ...data,
+      dob: data.dob
+        ? new Date(data.dob)
+        : undefined,
+    },
+  });
+};
+
+export const deleteCandidate = async (
+  candidateId: string,
+  userId: string
+) => {
+  const existingCandidate =
+    await prisma.candidate.findFirst({
+      where: {
+        id: candidateId,
+        createdById: userId,
+      },
+    });
+
+  if (!existingCandidate) {
+    throw new Error("Candidate not found");
+  }
+
+  await prisma.candidate.delete({
+    where: {
+      id: candidateId,
+    },
+  });
+
+  return true;
 };
