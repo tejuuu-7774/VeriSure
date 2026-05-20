@@ -52,3 +52,23 @@ export const getCandidates = async (
 
   return candidates;
 };
+
+// To access one particular ID of the candidate this is used
+export const getCandidateById = async (
+  candidateId: string,
+  userId: string
+) => {
+  const candidate =
+    await prisma.candidate.findFirst({
+      where: {
+        id: candidateId,
+        createdById: userId,
+      },
+    });
+
+  if (!candidate) {
+    throw new Error("Candidate not found");
+  }
+
+  return candidate;
+};

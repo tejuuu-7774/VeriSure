@@ -3,6 +3,7 @@ import { createCandidateSchema } from "../validations/candidate.validation";
 import {
   createCandidate,
   getCandidates,
+  getCandidateById,
 } from "../services/candidate.service";
 
 interface AuthRequest extends Request {
@@ -79,3 +80,41 @@ export const getCandidatesHandler = async (
     });
   }
 };
+
+// Main logic to get specific candidate
+export const getCandidateByIdHandler =
+  async (
+    req: AuthRequest,
+    res: Response
+  ) => {
+    try {
+      // checks if authenticated user
+      if (!req.user?.userId) {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized access",
+        });
+      }
+
+      const id = req.params.id as string;
+
+      // gets the candidate
+      const candidate =
+        await getCandidateById(
+          id,
+          req.user.userId
+        );
+
+      return res.status(200).json({
+        success: true,
+        candidate,
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message:
+          error.message ||
+          "Something went wrong",
+      });
+    }
+  };

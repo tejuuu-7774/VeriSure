@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createCandidateHandler,
   getCandidatesHandler,
+  getCandidateByIdHandler,
 } from "../controllers/candidate.controller";
 import { authenticateUser } from "../middleware/auth.middleware";
 
@@ -17,6 +18,12 @@ router.get(
   "/",
   authenticateUser,
   getCandidatesHandler
+);
+
+router.get(
+  "/:id",
+  authenticateUser,
+  getCandidateByIdHandler
 );
 
 export default router;
