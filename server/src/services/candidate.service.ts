@@ -132,6 +132,14 @@ export const deleteCandidate = async (
     throw new Error("Candidate not found");
   }
 
+  // delete logs first
+  await prisma.verificationLog.deleteMany({
+    where: {
+      candidateId,
+    },
+  });
+
+  // delete candidate
   await prisma.candidate.delete({
     where: {
       id: candidateId,
