@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.routes";
 import candidateRoutes from "./routes/candidate.routes";
 import verificationRoutes from "./routes/verification.routes";
 import dashboardRoutes from "./routes/dashboard.routes";
+import reportRoutes from "./routes/report.routes";
 
 const app = express();
 
@@ -23,5 +24,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/verifications", verificationRoutes);
 app.use("/api/dashboard", dashboardRoutes);
-
+app.use("/api/reports", reportRoutes);
 export default app;
