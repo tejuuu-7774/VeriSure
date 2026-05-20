@@ -15,8 +15,10 @@ const app = express();
 
 app.use(
   cors({
-    origin:
-      process.env.CLIENT_URL,
+    origin: [
+      "http://localhost:3000",
+      "https://veri-sure-gamma.vercel.app",
+    ],
     credentials: true,
   })
 );
