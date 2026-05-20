@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
-import { createCandidateSchema } from "../validations/candidate.validation";
+import {
+  createCandidateSchema,
+  updateCandidateSchema,
+} from "../validations/candidate.validation";
 import {
   createCandidate,
   getCandidates,
@@ -133,11 +136,14 @@ export const updateCandidateHandler =
       const id =
         req.params.id as string;
 
+      const validatedData =
+        updateCandidateSchema.parse(req.body);
+
       const candidate =
         await updateCandidate(
           id,
           req.user.userId,
-          req.body
+          validatedData
         );
 
       return res.status(200).json({

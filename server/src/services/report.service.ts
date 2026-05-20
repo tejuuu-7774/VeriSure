@@ -1,5 +1,33 @@
 import prisma from "../config/prisma";
 
+const maskVerificationLog = (log: any) => {
+  if (log.verificationType === "AADHAAR") {
+    return {
+      ...log,
+      requestPayload: {
+        ...log.requestPayload,
+        aadhaarNumber: `XXXXXXXX${String(
+          log.requestPayload?.aadhaarNumber || ""
+        ).slice(-4)}`,
+      },
+    };
+  }
+
+  if (log.verificationType === "PAN") {
+    return {
+      ...log,
+      requestPayload: {
+        ...log.requestPayload,
+        panNumber: `${String(
+          log.requestPayload?.panNumber || ""
+        ).slice(0, 3)}XXXXX`,
+      },
+    };
+  }
+
+  return log;
+};
+
 export const generateReport =
   async (
     candidateId: string,
@@ -40,6 +68,11 @@ export const generateReport =
           "PAN"
       );
 
+    const timeline =
+      candidate.verificationLogs.map(
+        maskVerificationLog
+      );
+
     return {
       reportId: `REP-${Date.now()}`,
 
@@ -73,12 +106,17 @@ export const generateReport =
 
       checks: {
         aadhaar:
-          aadhaarLog || null,
-        pan: panLog || null,
+          aadhaarLog
+            ? maskVerificationLog(
+                aadhaarLog
+              )
+            : null,
+        pan: panLog
+          ? maskVerificationLog(panLog)
+          : null,
       },
 
-      timeline:
-        candidate.verificationLogs,
+      timeline,
 
       generatedAt:
         new Date(),
