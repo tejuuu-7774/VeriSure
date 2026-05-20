@@ -1,98 +1,95 @@
-````md
 # VeriSure
+
 VeriSure is a full-stack background verification platform designed to manage candidate identity verification workflows in a secure and structured environment.
 
-The platform enables evaluators or HR teams to create candidate profiles, perform Aadhaar and PAN verification checks, track verification status, maintain verification logs, and generate downloadable PDF verification reports.
+The platform enables organizations, evaluators, or HR teams to create candidate profiles, run identity verification checks, monitor verification status, maintain audit logs, and generate downloadable PDF reports.
 
 ---
 
-## Live Demo
+## Live Application
 
-**Frontend URL:**  
-`https://veri-sure-gamma.vercel.app/`
+### Frontend
 
-**Backend API URL:**  
-`https://verisure-backend.onrender.com`
+https://veri-sure-gamma.vercel.app
 
----
+### Backend API
 
-## Repository
-
-**GitHub Repository:**  
-`https://github.com/tejuuu-7774/VeriSure.git`
+https://verisure-backend.onrender.com/api
 
 ---
-
 ## Project Overview
 
-VeriSure provides an end-to-end verification workflow for candidate onboarding and compliance checks.
+VeriSure provides an end-to-end workflow for secure candidate verification.
 
 The system allows users to:
 
-* Register and authenticate securely
-* Create and manage candidate profiles
-* Perform Aadhaar and PAN verification
-* Track verification logs and candidate status
-* View verification timelines
-* Generate downloadable PDF reports
-* Monitor operational metrics through a dashboard
+- Register and authenticate securely
+- Create and manage candidate profiles
+- Perform Aadhaar and PAN verification
+- Track verification logs and status updates
+- View candidate verification timelines
+- Generate professional verification reports
+- Download reports as PDF
+- Monitor verification statistics through a dashboard
+
+The application follows a clean full-stack architecture using a Next.js frontend, Express backend, Prisma ORM, and PostgreSQL database.
 
 ---
 
-## Features
+## Key Features
 
 ### Authentication
 
-* Secure user registration and login
-* JWT-based authentication
-* Password hashing using bcrypt
-* Protected routes and APIs
+- Secure user registration and login
+- JWT-based authentication
+- Password hashing using bcrypt
+- Protected routes and APIs
 
 ### Candidate Management
 
-* Create candidate profiles
-* Update candidate details
-* Delete candidate records
-* View candidate information
+- Create candidate profiles
+- Update candidate details
+- Delete candidate records
+- View detailed candidate information
 
 ### Verification Workflow
 
-* Aadhaar verification simulation
-* PAN verification simulation
-* Verification status tracking
+- Aadhaar verification simulation
+- PAN verification simulation
+- Automated verification status updates
 
-Candidate statuses:
+Supported statuses:
 
-* `PENDING`
-* `VERIFIED`
-* `FAILED`
-* `PARTIAL`
+- `PENDING`
+- `VERIFIED`
+- `FAILED`
+- `PARTIAL`
 
 ### Verification Logs
 
-* Stores verification history
-* Maintains timestamps
-* Displays verification timeline
+- Stores verification history
+- Tracks timestamps
+- Displays verification timeline
 
 ### Reports
 
-* Professional verification report preview
-* PDF report download
-* Masked sensitive information in reports
+- Professional verification report preview
+- Downloadable PDF reports
+- Masked sensitive identity details
 
 ### Dashboard
 
-* Total candidates
-* Verified candidates
-* Failed verifications
-* Pending verifications
-* Partial verifications
-* Recent activity tracking
+- Total candidates
+- Verified candidates
+- Pending verifications
+- Failed verifications
+- Partial verifications
+- Recent activity overview
 
 ### Demo Workspace
 
-* Seed demo candidate data
-* Reset workspace for fresh testing
+- Generate realistic demo candidate data
+- Reset workspace for evaluation and testing
 
 ---
 
@@ -100,32 +97,32 @@ Candidate statuses:
 
 ### Frontend
 
-* Next.js
-* TypeScript
-* Tailwind CSS
-* React Hook Form
-* Zod
-* Axios
-* Sonner
-* Lucide React
+- Next.js
+- TypeScript
+- Tailwind CSS
+- React Hook Form
+- Zod
+- Axios
+- Sonner
+- Lucide React
 
 ### Backend
 
-* Node.js
-* Express.js
-* TypeScript
-* Prisma ORM
-* JWT Authentication
-* bcrypt
+- Node.js
+- Express.js
+- TypeScript
+- Prisma ORM
+- JWT Authentication
+- bcrypt
 
 ### Database
 
-* PostgreSQL (Neon)
+- PostgreSQL (Neon)
 
 ### Deployment
 
-* Frontend: Vercel
-* Backend: Render
+- Frontend: Vercel
+- Backend: Render
 
 ---
 
@@ -143,57 +140,97 @@ Prisma ORM
             ▼
 PostgreSQL Database (Neon)
 ```
+---
+## ER Diagram
+
+```mermaid
+erDiagram
+
+    USER ||--o{ CANDIDATE : creates
+    CANDIDATE ||--o{ VERIFICATION_LOG : has
+
+    USER {
+        string id PK
+        string name
+        string email UK
+        string password
+        datetime createdAt
+    }
+
+    CANDIDATE {
+        string id PK
+        string fullName
+        string email
+        string phone
+        string aadhaarNumber
+        string panNumber
+        datetime dob
+        string address
+        enum verificationStatus
+        string createdById FK
+        datetime createdAt
+    }
+
+    VERIFICATION_LOG {
+        string id PK
+        enum verificationType
+        enum verificationStatus
+        json requestPayload
+        json responsePayload
+        datetime verifiedAt
+        string candidateId FK
+    }
+```
+---
+## Database Design
+
+### User
+
+Stores authenticated users.
+
+| Field | Type |
+|--------|------|
+| id | String |
+| name | String |
+| email | String |
+| password | String |
+| createdAt | DateTime |
+
+### Candidate
+
+Stores candidate identity details.
+
+| Field | Type |
+|--------|------|
+| id | String |
+| fullName | String |
+| email | String |
+| phone | String |
+| aadhaarNumber | String |
+| panNumber | String |
+| dob | DateTime |
+| address | String |
+| verificationStatus | Enum |
+| createdById | String |
+| createdAt | DateTime |
+
+### VerificationLog
+
+Stores Aadhaar and PAN verification logs.
+
+| Field | Type |
+|--------|------|
+| id | String |
+| verificationType | Enum |
+| verificationStatus | Enum |
+| requestPayload | JSON |
+| responsePayload | JSON |
+| verifiedAt | DateTime |
+| candidateId | String |
 
 ---
-### Database Relationships
 
-#### User
-
-Stores authenticated platform users.
-
-Fields:
-
-* id
-* name
-* email
-* password
-* createdAt
-
-#### Candidate
-
-Stores candidate information.
-
-Fields:
-
-* id
-* fullName
-* email
-* phone
-* aadhaarNumber
-* panNumber
-* dob
-* address
-* verificationStatus
-* createdById
-* createdAt
-
-#### VerificationLog
-
-Stores Aadhaar and PAN verification results.
-
-Fields:
-
-* id
-* verificationType
-* verificationStatus
-* requestPayload
-* responsePayload
-* verifiedAt
-* candidateId
-
----
-
-## Verification Flow
+## Verification Workflow
 
 ```txt
 Create Candidate
@@ -222,6 +259,7 @@ Download PDF Report
 VeriSure/
 │
 ├── client/                         # Frontend (Next.js)
+│   ├── public/
 │   ├── src/
 │   │   ├── app/
 │   │   ├── components/
@@ -241,6 +279,7 @@ VeriSure/
 │   │   ├── validations/
 │   │   └── utils/
 │
+├── API_DOCUMENTATION.md
 └── README.md
 ```
 
@@ -248,7 +287,7 @@ VeriSure/
 
 ## Local Setup
 
-### 1. Clone Repository
+### Clone Repository
 
 ```bash
 git clone <repository-url>
@@ -257,7 +296,7 @@ cd VeriSure
 
 ---
 
-### 2. Setup Backend
+### Backend Setup
 
 Navigate to server:
 
@@ -274,8 +313,8 @@ npm install
 Create `.env`:
 
 ```env
-DATABASE_URL=your_neon_database_url
-JWT_SECRET=your_secret_key
+DATABASE_URL=your_database_url
+JWT_SECRET=your_jwt_secret
 PORT=3001
 CLIENT_URL=http://localhost:3000
 ```
@@ -306,7 +345,7 @@ http://localhost:3001
 
 ---
 
-### 3. Setup Frontend
+### Frontend Setup
 
 Navigate to client:
 
@@ -340,64 +379,40 @@ http://localhost:3000
 
 ---
 
-## API Endpoints
+## API Documentation
 
-### Authentication
+Detailed API documentation is available in:
 
-| Method | Endpoint             | Description   |
-| ------ | -------------------- | ------------- |
-| POST   | `/api/auth/register` | Register user |
-| POST   | `/api/auth/login`    | Login user    |
-
-### Candidates
-
-| Method | Endpoint              | Description        |
-| ------ | --------------------- | ------------------ |
-| GET    | `/api/candidates`     | Get all candidates |
-| GET    | `/api/candidates/:id` | Get candidate      |
-| POST   | `/api/candidates`     | Create candidate   |
-| PUT    | `/api/candidates/:id` | Update candidate   |
-| DELETE | `/api/candidates/:id` | Delete candidate   |
-
-### Verification
-
-| Method | Endpoint                     | Description        |
-| ------ | ---------------------------- | ------------------ |
-| POST   | `/api/candidates/:id/verify` | Start verification |
-
-### Reports
-
-| Method | Endpoint               | Description  |
-| ------ | ---------------------- | ------------ |
-| GET    | `/api/reports/:id`     | Get report   |
-| GET    | `/api/reports/:id/pdf` | Download PDF |
-
-### Dashboard
-
-| Method | Endpoint               | Description          |
-| ------ | ---------------------- | -------------------- |
-| GET    | `/api/dashboard/stats` | Dashboard statistics |
+```txt
+API_DOCUMENTATION.md
+```
 
 ---
 
 ## Security Measures
 
-* JWT authentication
-* Password hashing using bcrypt
-* Protected routes
-* Request validation using Zod
-* Sensitive identity masking in reports
-* Prisma ORM for secure database queries
+- JWT authentication
+- Password hashing using bcrypt
+- Protected routes
+- Request validation using Zod
+- Sensitive identity masking
+- Secure database access using Prisma ORM
+- CORS protection
 
 ---
 
-## Future Improvements Could be
+## Future Improvements
 
-* Real Aadhaar and PAN API integration
-* Email notifications
-* Advanced filtering and analytics
-* Role-based access control
-* Verification retry system
-* Audit exports
+- Real Aadhaar and PAN API integration
+- Role-based access control
+- Email notifications
+- Advanced analytics
+- Verification retry mechanism
+- Exportable audit logs
 
 ---
+
+## Author
+
+**Tejaswini Palwai**  
+Full Stack Developer
