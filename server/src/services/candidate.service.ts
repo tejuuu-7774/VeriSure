@@ -70,6 +70,13 @@ export const getCandidateById = async (
         id: candidateId,
         createdById: userId,
       },
+      include: {
+        verificationLogs: {
+          orderBy: {
+            verifiedAt: "desc",
+          },
+        },
+      },
     });
 
   if (!candidate) {

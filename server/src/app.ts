@@ -8,6 +8,7 @@ import healthRoutes from "./routes/health.routes";
 import authRoutes from "./routes/auth.routes";
 import candidateRoutes from "./routes/candidate.routes";
 import verificationRoutes from "./routes/verification.routes";
+import dashboardRoutes from "./routes/dashboard.routes";
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/candidates", candidateRoutes);
 app.use("/api/verifications", verificationRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 export default app;
