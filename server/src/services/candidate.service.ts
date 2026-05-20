@@ -50,14 +50,30 @@ export const createCandidate = async ({
 export const getCandidates = async (
   userId: string
 ) => {
-  return prisma.candidate.findMany({
-    where: {
-      createdById: userId,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const candidates =
+    await prisma.candidate.findMany({
+      where: {
+        createdById: userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+  return candidates.map(
+    (candidate) => ({
+      ...candidate,
+
+      aadhaarNumber: `XXXXXXXX${candidate.aadhaarNumber.slice(
+        -4
+      )}`,
+
+      panNumber: `${candidate.panNumber.slice(
+        0,
+        3
+      )}XXXXX`,
+    })
+  );
 };
 
 export const getCandidateById = async (
@@ -83,7 +99,18 @@ export const getCandidateById = async (
     throw new Error("Candidate not found");
   }
 
-  return candidate;
+  return {
+    ...candidate,
+
+    aadhaarNumber: `XXXXXXXX${candidate.aadhaarNumber.slice(
+      -4
+    )}`,
+
+    panNumber: `${candidate.panNumber.slice(
+      0,
+      3
+    )}XXXXX`,
+  };
 };
 
 export const updateCandidate = async (
