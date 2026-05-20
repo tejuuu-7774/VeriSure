@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  PARTIAL
+}
+
+enum VerificationType {
+  AADHAAR
+  PAN
+}
+
+model User {
+  id            String      @id @default(uuid())
+  name          String
+  email         String      @unique
+  password      String
+  createdAt     DateTime    @default(now())
+
+  candidates    Candidate[]
+}
+
+model Candidate {
+  id                    String                @id @default(uuid())
+  fullName              String
+  email                 String
+  phone                 String
+  aadhaarNumber         String
+  panNumber             String
+  dob                   DateTime
+  address               String
+
+  verificationStatus    VerificationStatus @default(PENDING)
+
+  createdAt             DateTime @default(now())
+
+  createdById           String
+  createdBy             User @relation(fields: [createdById], references: [id])
+
+  verificationLogs      VerificationLog[]
+}
+
+model VerificationLog {
+  id                    String              @id @default(uuid())
+
+  candidateId           String
+  candidate             Candidate          @relation(fields: [candidateId], references: [id])
+
+  verificationType      VerificationType
+  requestPayload        Json
+  responsePayload       Json
+  verificationStatus    VerificationStatus
+
+  verifiedAt            DateTime @default(now())
+}
