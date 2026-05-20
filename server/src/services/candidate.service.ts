@@ -36,3 +36,19 @@ export const createCandidate = async ({
 
   return candidate;
 };
+
+export const getCandidates = async (
+  userId: string
+) => {
+  const candidates =
+    await prisma.candidate.findMany({
+      where: {
+        createdById: userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+  return candidates;
+};
