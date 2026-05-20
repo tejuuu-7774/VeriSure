@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 
 import healthRoutes from "./routes/health.routes";
 import authRoutes from "./routes/auth.routes";
+import candidateRoutes from "./routes/candidate.routes";
 
 const app = express();
 
@@ -17,5 +18,6 @@ app.use(morgan("dev"));
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/candidates", candidateRoutes);
 
 export default app;
