@@ -1,29 +1,3 @@
-For submission, your API documentation should be **clean, evaluator-friendly, and quick to scan** — not Swagger-level overkill.
-
-I recommend:
-
-```txt id="x8m2qt"
-API_DOCUMENTATION.md
-```
-
-inside root.
-
-Structure:
-
-```txt id="p4n8rv"
-base url
-authentication
-request headers
-all endpoints
-request body
-response examples
-status codes
-error responses
-```
-
-Use this **copy-paste ready professional version**:
-
-````md id="t3k8vn"
 # VeriSure API Documentation
 
 ## Base URL
@@ -32,12 +6,12 @@ Use this **copy-paste ready professional version**:
 
 ```http
 http://localhost:3001/api
-````
+```
 
 ### Production
 
 ```http
-Add deployed backend URL here
+https://verisure-backend.onrender.com/api
 ```
 
 ---
@@ -46,7 +20,7 @@ Add deployed backend URL here
 
 VeriSure uses **JWT Authentication**.
 
-After login, include the token in the Authorization header.
+After login, include the JWT token in the `Authorization` header for all protected routes.
 
 ### Header Format
 
@@ -57,7 +31,7 @@ Authorization: Bearer <jwt_token>
 Example:
 
 ```http
-Authorization: Bearer eyJhbGciOi...
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 ```
 
 ---
@@ -86,25 +60,27 @@ POST /api/auth/register
 
 ### Success Response
 
+**Status: 201 Created**
+
 ```json
 {
   "message": "User registered successfully"
 }
 ```
 
-### Status Codes
+### Error Responses
 
-| Code | Description          |
-| ---- | -------------------- |
-| 201  | User created         |
-| 400  | Validation error     |
-| 409  | Email already exists |
+| Status Code | Description |
+|-------------|-------------|
+| 400 | Validation error |
+| 409 | Email already exists |
+| 500 | Internal server error |
 
 ---
 
 ## Login User
 
-Authenticates user and returns JWT token.
+Authenticates a user and returns a JWT token.
 
 ### Endpoint
 
@@ -123,6 +99,8 @@ POST /api/auth/login
 
 ### Success Response
 
+**Status: 200 OK**
+
 ```json
 {
   "token": "jwt_token",
@@ -134,25 +112,25 @@ POST /api/auth/login
 }
 ```
 
-### Status Codes
+### Error Responses
 
-| Code | Description         |
-| ---- | ------------------- |
-| 200  | Login successful    |
-| 401  | Invalid credentials |
-| 400  | Validation error    |
+| Status Code | Description |
+|-------------|-------------|
+| 400 | Validation error |
+| 401 | Invalid credentials |
+| 500 | Internal server error |
 
 ---
 
 # Candidate APIs
 
-All candidate routes are protected.
+All candidate routes are protected and require JWT authentication.
 
 ---
 
 ## Get All Candidates
 
-Returns all candidates.
+Returns all candidates created by the authenticated user.
 
 ### Endpoint
 
@@ -168,6 +146,8 @@ Authorization: Bearer <token>
 
 ### Success Response
 
+**Status: 200 OK**
+
 ```json
 [
   {
@@ -181,18 +161,11 @@ Authorization: Bearer <token>
 ]
 ```
 
-### Status Codes
-
-| Code | Description  |
-| ---- | ------------ |
-| 200  | Success      |
-| 401  | Unauthorized |
-
 ---
 
 ## Get Candidate By ID
 
-Returns candidate details with verification logs.
+Returns candidate details including verification logs.
 
 ### Endpoint
 
@@ -208,6 +181,8 @@ GET /api/candidates/123
 
 ### Success Response
 
+**Status: 200 OK**
+
 ```json
 {
   "id": "candidate_id",
@@ -219,11 +194,18 @@ GET /api/candidates/123
 }
 ```
 
+### Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 401 | Unauthorized |
+| 404 | Candidate not found |
+
 ---
 
 ## Create Candidate
 
-Creates a new candidate.
+Creates a new candidate profile.
 
 ### Endpoint
 
@@ -247,6 +229,8 @@ POST /api/candidates
 
 ### Success Response
 
+**Status: 201 Created**
+
 ```json
 {
   "message": "Candidate created successfully",
@@ -256,13 +240,12 @@ POST /api/candidates
 }
 ```
 
-### Status Codes
+### Error Responses
 
-| Code | Description       |
-| ---- | ----------------- |
-| 201  | Candidate created |
-| 400  | Validation error  |
-| 401  | Unauthorized      |
+| Status Code | Description |
+|-------------|-------------|
+| 400 | Validation error |
+| 401 | Unauthorized |
 
 ---
 
@@ -287,6 +270,8 @@ PUT /api/candidates/:id
 
 ### Success Response
 
+**Status: 200 OK**
+
 ```json
 {
   "message": "Candidate updated successfully"
@@ -297,7 +282,7 @@ PUT /api/candidates/:id
 
 ## Delete Candidate
 
-Deletes a candidate.
+Deletes a candidate record.
 
 ### Endpoint
 
@@ -306,6 +291,8 @@ DELETE /api/candidates/:id
 ```
 
 ### Success Response
+
+**Status: 200 OK**
 
 ```json
 {
@@ -319,7 +306,7 @@ DELETE /api/candidates/:id
 
 ## Start Verification
 
-Runs Aadhaar and PAN verification.
+Runs Aadhaar and PAN verification simulation.
 
 ### Endpoint
 
@@ -334,6 +321,8 @@ POST /api/candidates/123/verify
 ```
 
 ### Success Response
+
+**Status: 200 OK**
 
 ```json
 {
@@ -367,6 +356,8 @@ GET /api/dashboard/stats
 
 ### Success Response
 
+**Status: 200 OK**
+
 ```json
 {
   "totalCandidates": 10,
@@ -383,7 +374,7 @@ GET /api/dashboard/stats
 
 ## Get Verification Report
 
-Returns structured verification report.
+Returns a structured verification report.
 
 ### Endpoint
 
@@ -392,6 +383,8 @@ GET /api/reports/:id
 ```
 
 ### Success Response
+
+**Status: 200 OK**
 
 ```json
 {
@@ -408,7 +401,7 @@ GET /api/reports/:id
 
 ## Download PDF Report
 
-Downloads verification report PDF.
+Downloads a professional PDF verification report.
 
 ### Endpoint
 
@@ -436,29 +429,27 @@ Returns downloadable PDF file.
 
 # HTTP Status Codes
 
-| Code | Meaning               |
-| ---- | --------------------- |
-| 200  | Success               |
-| 201  | Resource created      |
-| 400  | Bad request           |
-| 401  | Unauthorized          |
-| 404  | Resource not found    |
-| 409  | Conflict              |
-| 500  | Internal server error |
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Resource created |
+| 400 | Bad request |
+| 401 | Unauthorized |
+| 404 | Resource not found |
+| 409 | Conflict |
+| 500 | Internal server error |
 
 ---
 
 # Postman Testing
 
-Import all APIs into Postman and use:
+For protected routes:
 
 ```http
 Authorization: Bearer <jwt_token>
 ```
 
-for protected routes.
-
-Recommended testing flow:
+### Recommended API Testing Flow
 
 ```txt
 1. Register user
@@ -466,7 +457,8 @@ Recommended testing flow:
 3. Copy JWT token
 4. Create candidate
 5. Start verification
-6. View dashboard stats
-7. Generate report
-8. Download PDF
+6. View candidate details
+7. Check dashboard statistics
+8. Generate report
+9. Download PDF report
 ```
