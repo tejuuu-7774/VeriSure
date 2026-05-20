@@ -9,7 +9,7 @@ The platform enables evaluators or HR teams to create candidate profiles, perfor
 ## Live Demo
 
 **Frontend URL:**  
-`Add deployed frontend URL here`
+`https://veri-sure-gamma.vercel.app/`
 
 **Backend API URL:**  
 `https://verisure-backend.onrender.com`
